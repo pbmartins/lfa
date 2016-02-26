@@ -6,16 +6,17 @@
 #include "calculate.h"
 
 /** \brief String defining the alphabet */
-static const char* alphabet = "abc";
+static const char* alphabet = "0123456789+-*/^()= .abcdefghijklmnopqrstuvwxyz";
 
 int main(int argc, char* argv[])
 {
+    variablesMap* map = new variablesMap();
     char* line = NULL;
     size_t n = 0;
 
     /* loop on given words */
-    while (getline(&line, &n, stdin) > 0)
-    {
+    printf(">> ");
+    while (getline(&line, &n, stdin) > 0) {
         /* remove newline character if one exists */
         size_t len = strlen(line);
         len--;
@@ -29,15 +30,8 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        /* check if word belongs to the language */
-        if (M(line))
-        {
-            printf("\"%s\" belongs to L\n", line);
-        }
-        else
-        {
-            printf("\"%s\" does not belong to L\n", line);
-        }
+        printf("ans = %f\n", calculate(line, map));
+        printf(">> ");
     }
 
     /* that's all */

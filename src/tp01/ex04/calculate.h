@@ -1,14 +1,19 @@
-#ifndef __M1_H__
-#define __M1_H__
+#include <map>
+#include <iostream>
+#ifndef __CALCULATE_H__
+#define __CALCULATE_H__
 
+typedef std::map<std::string, std::string> variablesMap;
 /** \brief Language recognizer
  * \param u word to be evaluated
  * \return \c true if word belongs to the language 
  *      and \c false otherwise
  */
-int calculate(char* u[]);
+double calculate(char* u, variablesMap* variables);
 
-char* convert(char* u[]);
+int priority(char op1, char op2);
 
-int priority(char c, char t);
-#endif // __M1_H__
+int isOperator(char c);
+
+int isAssociative(char c, int type);
+#endif // __CALCULATE_H__

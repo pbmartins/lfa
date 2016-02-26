@@ -6,10 +6,11 @@
 #include "calculate.h"
 
 /** \brief String defining the alphabet */
-static const char* alphabet = "0123456789+-*/^()";
+static const char* alphabet = "0123456789+-*/^()= .abcdefghijklmnopqrstuvwxyz";
 
 int main(int argc, char* argv[])
 {
+    variablesMap* map = new variablesMap();
     /* check number of arguments
      * 1 means no arguments are given */
     if (argc == 1)
@@ -30,9 +31,7 @@ int main(int argc, char* argv[])
             printf("\"%s\" contains invalid characters\n", argv[i]);
             continue;
         }
-        char* p = convert(argv);
-        int result = calculate(&p);
-        printf("Result: %d", result);
+        printf("ans = %f\n", calculate(argv[1], map));
     }
 
     /* that's all */
