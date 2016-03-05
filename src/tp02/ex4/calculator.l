@@ -3,10 +3,13 @@
     #include <map>
     #include <stack>
     #include <string>
+    #include <cstring>
     #include <math.h>
     #include <utility>
     #include <iostream>
-    enum { NUM=257, ID, PAREN, ASIGN, ADDSUB, MULDIV, POW, TRIG, EOL, INVALID };
+    #define PI 3.14159
+    #define E 2.71828
+    enum { NUM=257, CONST, ID, PAREN, ASIGN, ADDSUB, MULDIV, POW, TRIG, EOL, INVALID };
 %}
 
 %option noyywrap
@@ -14,6 +17,7 @@
 %option noinput nounput
 
 num     ("-")?([0-9]+|[0-9]*\.[0-9]+)((E|e)(\+|\-)?[0-9]+)?
+const   (pi|e)
 id      ([a-zA-Z]+[a-zA-Z0-9]*)
 addsub  ("+"|"-")
 muldiv  ("*"|"/"|"%")
@@ -27,13 +31,14 @@ other   [abc]+
 %%
 
 {num}               { return NUM; }
-{id}(!{trig})       { return ID; }
+{const}             { return CONST; }
 {addsub}            { return ADDSUB; }
 {muldiv}            { return MULDIV; }
 {pow}               { return POW; }
 {asign}             { return ASIGN; }
 {trig}              { return TRIG; }
 {paren}             { return PAREN; }
+{id}                { return ID; }
 \n                  { return EOL; }
 
 %%
@@ -75,65 +80,33 @@ double calculate(double n1, double n2, std::string op) {
         return -1;
 }
 
-void printOPStack(std::stack<std::pair<std::string, int> > op) {
-    while(!op.empty()) {
-        printf("%s, %d\n", op.top().first.c_str(), op.top().second);
-        op.pop();
-    }
-    printf("\n");
-}
-
-
-void printStack(std::stack<double> op) {
-    while(!op.empty()) {
-        printf("%f\n", op.top());
-        op.pop();
-    }
-    printf("\n");
-}
-
 // Parsing the expression
 double calculator(yyscan_t scanner, int inside) {
     std::stack<std::pair<std::string, int> > operators;
-    std::stack<double> operands;
+    std::stack<std::pair<std::string, double> > operands;
 
     /* do scanning */
     int tid, topOpType;
-    std::string op, topOp;
-    std::string var;
+    std::string op, topOp, var;
     double n, n1, n2;
-    while ((tid = yylex(scanner)) != 0)
-    {
-        printf("init - char %c\n", yyget_text(scanner)[0]);
-        printStack(operands);
-        printOPStack(operators);
-
-        std::map<std::string, double>::iterator it = variables.begin();
-        std::cout << "mymap contains:\n";
-        for (it=variables.begin(); it!=variables.end(); ++it)
-            std::cout << it->first << " => " << it->second << '\n';
-
-        switch (tid)
-        {
+    while ((tid = yylex(scanner)) != 0) {
+        switch (tid) {
             case NUM:
                 n = atof(yyget_text(scanner));
-                operands.push(n);
+                operands.push(std::make_pair("none", n));
+                break;
+            case CONST:
+                if (strcmp(yyget_text(scanner),"pi") == 0)
+                    operands.push(std::make_pair("pi", PI));
+                else if (strcmp(yyget_text(scanner),"e") == 0)
+                    operands.push(std::make_pair("e", E));
                 break;
             case ID:
                 var = yyget_text(scanner);
                 if (variables.count(var))
-                    operands.push(variables.at(var));
-                /*else {
-                    if (yylex(scanner) == ASIGN) {                              // check of ASIGN
-                        if (yylex(scanner) == NUM) {                            // check for NUM
-                            n = atof(yyget_text(scanner));                      // save NUM on stack and on variables map
-                            operands.push(n);
-                            variables[var] = n;
-                        } else
-                            throw std::invalid_argument("ERROR: Invalid asignment!");
-                    } else
-                        throw std::invalid_argument("ERROR: Invalid asignment!");
-                }*/
+                    operands.push(std::make_pair(var, variables.at(var)));
+                else
+                    operands.push(std::make_pair(var, 0));
                 break;
             case ADDSUB: case MULDIV: case POW: case ASIGN:
                 op = yyget_text(scanner);
@@ -142,11 +115,21 @@ double calculator(yyscan_t scanner, int inside) {
                     topOpType = operators.top().second;
                     if ((isLeftAssociative(tid) && tid <= topOpType)
                        || (isRightAssociative(tid) && tid < topOpType)) {
-                        n2 = operands.top();
+                        if (topOpType == ASIGN) {
+                            n = operands.top().second;
+                            operands.pop();
+                            var = operands.top().first;
+                            operands.pop();
+                            variables[var] = n;
+                            printf("var %s = %f\n", var.c_str(), variables.at(var));
+                            operands.push(std::make_pair(var, variables.at(var)));
+                            continue;
+                        }
+                        n2 = operands.top().second;
                         operands.pop();
-                        n1 = operands.top();
+                        n1 = operands.top().second;
                         operands.pop();
-                        operands.push(calculate(n1, n2, topOp));
+                        operands.push(std::make_pair("none", calculate(n1, n2, topOp)));
                         operators.pop();
                         continue;
                     }
@@ -156,11 +139,10 @@ double calculator(yyscan_t scanner, int inside) {
                 break;
             case TRIG:
                 op = yyget_text(scanner);
-                operands.push(calculate(calculator(scanner, 1), 0, op));
+                operands.push(std::make_pair("none", calculate(calculator(scanner, 1), 0, op)));
                 break;
             case PAREN:
                 op = yyget_text(scanner);
-                printf("parentesis\n");
                 if (op == "(")
                     operators.push(std::make_pair(op, tid));
                 else {
@@ -172,38 +154,54 @@ double calculator(yyscan_t scanner, int inside) {
                             break;
                         if ((isLeftAssociative(tid) && tid <= topOpType)
                            || (isRightAssociative(tid) && tid < topOpType)) {
-                            n2 = operands.top();
+                            if (topOpType == ASIGN) {
+                                n = operands.top().second;
+                                operands.pop();
+                                var = operands.top().first;
+                                operands.pop();
+                                variables[var] = n;
+                                operands.push(std::make_pair(var, variables.at(var)));
+                                continue;
+                            }
+                            n2 = operands.top().second;
                             operands.pop();
-                            n1 = operands.top();
+                            n1 = operands.top().second;
                             operands.pop();
-                            operands.push(calculate(n1, n2, topOp));
+                            operands.push(std::make_pair("none", calculate(n1, n2, topOp)));
                         }
                     }
                     if (inside && operators.empty())
-                        return operands.top();
+                        return operands.top().second;
                 }
                 break;
             case INVALID:
                 printf("%s - is no valid!\n", yyget_text(scanner));
                 break;
             case EOL:
-                printf("end of line\n");
                 while(!operators.empty()) {
                     topOp = operators.top().first;
                     topOpType = operators.top().second;
                     operators.pop();
-                    n2 = operands.top();
+                    if (topOpType == ASIGN) {
+                        n = operands.top().second;
+                        operands.pop();
+                        var = operands.top().first;
+                        operands.pop();
+                        variables[var] = n;
+                        operands.push(std::make_pair(var, variables.at(var)));
+                        continue;
+                    }
+                    n2 = operands.top().second;
                     operands.pop();
-                    n1 = operands.top();
+                    n1 = operands.top().second;
                     operands.pop();
-                    operands.push(calculate(n1, n2, topOp));
-                    printf("operands - n1: %f %s n2: %f\n", n1, topOp.c_str(), n2);
+                    operands.push(std::make_pair("none", calculate(n1, n2, topOp)));
                 }
-                printf("ans = %f\n", operands.top());
-                return operands.top();
+                return operands.top().second;
                 break;
         }
     }
+    return 0;
 }
 
 
@@ -242,9 +240,10 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-    while (1) 
+    while (1) {
+        printf(">> ");
         printf("ans = %f\n", calculator(scanner, 0));
-
+    }
     /* clean up and quit */
     yylex_destroy(scanner);
     return 0;

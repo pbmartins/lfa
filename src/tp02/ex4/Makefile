@@ -2,7 +2,7 @@ CC = g++
 CFLAGS = -Wall
 LEX = flex
 
-TARGETS  = flex-model-2
+TARGETS  = calculator
 
 all:	$(TARGETS)
 
