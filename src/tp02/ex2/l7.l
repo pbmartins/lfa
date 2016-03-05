@@ -16,7 +16,7 @@ other   [abc]+
 
 %%
 
-^({e1}c*|({e1}a+bc+{e1}c*)*|(c+{e1}a+b)*c+)$   { belongs(yytext); }
+^({e1}c*|({e1}a+bc+{e1}c*)*|(c+{e1}a+b)*c+)$    { belongs(yytext); }
 ^{other}$                                       { other(yytext); }
 \n                                              { ECHO; }
 .+                                              { invalid(yytext); }

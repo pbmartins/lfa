@@ -17,15 +17,16 @@ e4      (ba+)
 e5      (a*bb+c*a*)
 e6      (a*c+b*a*)
 e7      (a*b*c+a*)
+e8      (ab*)
 any     [abc]*
 other   [abc]+
 
 %%
 
-^{e1}{e2}({e4}|{e3}{e1}{e2})?(({e5}|{e6}|{e7})*b*)?$  { belongs(yytext); }
-^{other}$                                    { other(yytext); }
-\n                                           { ECHO; }
-.+                                           { invalid(yytext); }
+^({e8}|{e1}{e2}({e4}|{e3}{e1}{e2})?(({e5}|{e6}|{e7})*b*)?)$  { belongs(yytext); }
+^{other}$                                                    { other(yytext); }
+\n                                                           { ECHO; }
+.+                                                           { invalid(yytext); }
 
 %%
 
