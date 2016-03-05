@@ -93,6 +93,8 @@ double calculator(yyscan_t scanner, int inside) {
         switch (tid) {
             case NUM:
                 n = atof(yyget_text(scanner));
+                if (n < 0 && !operands.empty())
+                    operators.push(std::make_pair("+", ADDSUB));
                 operands.push(std::make_pair("none", n));
                 break;
             case CONST:
@@ -121,7 +123,6 @@ double calculator(yyscan_t scanner, int inside) {
                             var = operands.top().first;
                             operands.pop();
                             variables[var] = n;
-                            printf("var %s = %f\n", var.c_str(), variables.at(var));
                             operands.push(std::make_pair(var, variables.at(var)));
                             continue;
                         }
