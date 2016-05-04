@@ -26,6 +26,8 @@
 %token NOTSHOW
 %token <vchar> INVALID
 
+%expect 9
+
 %type <vnum> exp term fact opnd
 
 %%
@@ -53,8 +55,8 @@ fact	:	opnd                { $$ = $1; }
 
 opnd    :	NUM                 { $$ = $1; }
         |   CONST               { $$ = $1; }
-        |   ID '=' exp          { $$ = $3; std::string str($1); pp->symt->assign(str, $3); }
         |   ID                  { std::string str($1); $$ = pp->symt->valueOf(str); }
+        |   ID '=' exp          { $$ = $3; std::string str($1); pp->symt->assign(str, $3); }
         |	'(' exp ')'         { $$ = $2; }
         |   FUNC '(' exp ')'    { $$ = $1($3); }
         |   '-' opnd            { $$ = -$2; }

@@ -1,6 +1,6 @@
-CC = g++
+CC = g++-5
 CFLAGS = -Wall
-CXX = g++
+CXX = g++-5
 CXXFLAGS = -Wall
 LEX = flex
 YACC = bison
@@ -16,10 +16,10 @@ calc-parse.o:	calc-lex.h calc-data.h ast.h
 
 calc-lex.o:	calc-parse.h ast.h
 
-calc-parse.c calc-parse.h:	calc-parse.y
+calc-parse.c calc-parse.h:	calc-parse.y ast.h
 	$(YACC) calc-parse.y -o calc-parse.c
 
-calc-lex.c calc-lex.h:	calc-lex.l
+calc-lex.c calc-lex.h:	calc-lex.l ast.h
 	$(LEX) -ocalc-lex.c calc-lex.l
 
 

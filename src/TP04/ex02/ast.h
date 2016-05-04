@@ -75,9 +75,11 @@ public:
     ASTNodeVar(const char* id, SymbolTable* stp)
         : vid(id), st(stp) {}
 
-    ~ASTNodeVar() {}
+    ~ASTNodeVar();
 
     double eval();
+
+    void store(double val);
 
 private:
     std::string vid;    ///< The variable id
@@ -93,7 +95,7 @@ public:
     ASTNodeFunc(double (*vf)(double), ASTNode* r)
         : vfunc(vf), right(r) {}
 
-    ~ASTNodeFunc() {}
+    ~ASTNodeFunc();
 
     double eval();
 

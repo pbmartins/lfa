@@ -2,6 +2,7 @@
     #include <stdlib.h>
     #include <math.h>
     #include <string>
+    #include "ast.h"
     #include "calc-parse.h"
     double constValue(char* text);
 %}

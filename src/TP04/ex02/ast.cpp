@@ -22,8 +22,9 @@ double ASTNodeBOpr::eval()
         case '/':
             return left->eval() / right->eval();
         case '^':
-            return pow(left->eval, right->eval);
+            return pow(left->eval(), right->eval());
         case '=':
+            ((ASTNodeVar*)left)->store(right->eval());
             return right->eval();
         default:
             return NAN;
@@ -72,11 +73,19 @@ double ASTNodeVar::eval()
     return st->valueOf(vid);
 }
 
+
+////////////////////////////////////////////////////
+
+void ASTNodeVar::store(double val)
+{
+    st->assign(vid, val);
+}
+
 ////////////////////////////////////////////////////
 
 double ASTNodeFunc::eval()
 {
-    return vfunc(right->eval);
+    return vfunc(right->eval());
 }
 
 ////////////////////////////////////////////////////

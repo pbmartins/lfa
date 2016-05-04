@@ -1,6 +1,6 @@
-CC = g++
+CC = g++-5
 CFLAGS = -Wall
-CXX = g++
+CXX = g++-5
 CXXFLAGS = -Wall
 LEX = flex
 YACC = bison
